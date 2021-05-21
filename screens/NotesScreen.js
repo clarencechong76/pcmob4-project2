@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import firebase from "../database/firebaseDB"
+import firebase from "../database/firebaseDB";
+
 import {
   StyleSheet,
   Text,
@@ -8,6 +9,7 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+const db = firebase.firestore().collection("todo");
 
 export default function NotesScreen({ navigation, route }) {
   const [notes, setNotes] = useState([]);
@@ -24,7 +26,15 @@ useEffect(() => {
   .firestore()
   .collection("todo")
   .onSnapshot((collection) => {
-    const updatedNotes = collection.docs.map((doc) => doc.data());
+    const updatedNotes = collection.docs.map((doc) => {
+      const noteObject = {
+        ...doc.data(),
+        id: doc.id,
+      };
+      console.log(noteObject);
+      return noteObject;
+
+      });
     setNotes(updatedNotes);  
     
 });
@@ -73,6 +83,7 @@ return () => {
   // This deletes an individual note
   function deleteNote(id) {
     console.log("Deleting " + id);
+db.doc(id).delete();
 
     firebase
     .firestore()
