@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import firebase from "../database/firebaseDB"
 import {
   StyleSheet,
   Text,
@@ -10,6 +11,28 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function NotesScreen({ navigation, route }) {
   const [notes, setNotes] = useState([]);
+
+firebase.firestore().collection("testing").add({
+title: "testing! Does this work???",
+body: "this is to check the Integration is working",
+potato: true,
+question: "why is there a potato bool here"
+});
+
+useEffect(() => {
+  const unsubscribe = firebase
+  .firestore()
+  .collection("todo")
+  .onSnapshot((collection) => {
+    const updatedNotes = collection.docs.map((doc) => doc.data());
+    setNotes(updatedNotes);  
+    
+});
+
+return () => {
+  unsubscribe();
+};
+}, []);
 
   // This is to set up the top right button
   useEffect(() => {
@@ -38,7 +61,8 @@ export default function NotesScreen({ navigation, route }) {
         done: false,
         id: notes.length.toString(),
       };
-      setNotes([...notes, newNote]);
+      firebase.firestore().collection("todo").add(newNote)
+      
     }
   }, [route.params?.text]);
 
@@ -49,6 +73,18 @@ export default function NotesScreen({ navigation, route }) {
   // This deletes an individual note
   function deleteNote(id) {
     console.log("Deleting " + id);
+
+    firebase
+    .firestore()
+    .collection("todo")
+    .where("id", "==", id)
+    .get()
+    .then((querySnapshot) =>{
+      querySnapshot.forEach((doc) => doc.ref.delete());
+    });
+
+  
+
     // To delete that item, we filter out the item we don't want
     setNotes(notes.filter((item) => item.id !== id));
   }
